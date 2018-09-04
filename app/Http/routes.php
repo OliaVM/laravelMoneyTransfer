@@ -11,46 +11,22 @@
 |
 */
 
-use App\Task;
-use Illuminate\Http\Request;
+Route::get('/', function () {
+    //return view('layouts.app');
+    return view('my/main');
+});
 
-Route::group(['middleware' => ['web']], function () {
-    /**
-     * Show Task Dashboard
-     */
-    Route::get('/', function () {
-        return view('tasks', [
-            'tasks' => Task::orderBy('created_at', 'asc')->get()
-        ]);
-    });
+//access only for authorized users
+Route::group(['middleware' => 'auth'], function () {
+	// do transfer
+	Route::match(['get', 'post'], '/transfer/do', ['uses'=>'TransferController@do_transfer', 'as'=>'do_transfer']);
+	//show transfers
+	Route::get('/transfer/show/{session_user_id}', ['uses'=>'TransferController@show', 'as'=>'show'])->where('id', '[0-99999999999]+');
+});
 
-    /**
-     * Add New Task
-     */
-    Route::post('/task', function (Request $request) {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|max:255',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect('/')
-                ->withInput()
-                ->withErrors($validator);
-        }
-
-        $task = new Task;
-        $task->name = $request->name;
-        $task->save();
-
-        return redirect('/');
-    });
-
-    /**
-     * Delete Task
-     */
-    Route::delete('/task/{id}', function ($id) {
-        Task::findOrFail($id)->delete();
-
-        return redirect('/');
-    });
+//authorization
+Route::group(['middleware' => 'web'], function () {
+    Route::auth();
+    Route::get('/home', 'HomeController@index')->name('home');
+    Route::get('/logout', 'Auth\AuthController@logout')->name('logout');
 });
