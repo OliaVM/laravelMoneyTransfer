@@ -32,6 +32,7 @@ class TransferController extends Controller
 						'number_of_account' => 'required|integer|max:100000000000',
 						'money_for_transfer' => 'required|integer|max:1000000000000',
 			]);
+
 			// get autentifacated_user_ID 
 			$session_user_id = Auth::id();
 			// get money_for_transfer
@@ -62,12 +63,7 @@ class TransferController extends Controller
 				//verify does the account number exist 
 				if (!empty($arr_recipient)) {
 					// Add transfer in TABLE TRANSFERS
-					$transfer = Transfer::create([
-						'from_user_id' => $session_user_id, 
-						'to_user_id' => $recipient_id, 
-						'count_money' => $money_for_transfer, 
-						'created_at' => $time
-						]);
+					$transfer = $this->add_transfer_in_transfers($session_user_id, $recipient_id, $money_for_transfer, $time);
 
 					//update recipient 
 					//calculate current money of recipient
@@ -92,6 +88,17 @@ class TransferController extends Controller
 		return view('my/transfer/do', ['result_action' => $this->result_action, 'err' => $this->err]);
 	}
 
+
+	public function add_transfer_in_transfers($session_user_id, $recipient_id, $money_for_transfer, $time) {
+		// Add transfer in TABLE TRANSFERS
+		$transfer = Transfer::create([
+			'from_user_id' => $session_user_id, 
+			'to_user_id' => $recipient_id, 
+			'count_money' => $money_for_transfer, 
+			'created_at' => $time
+		]);
+		return $transfer;
+	}
 
 	public function get_sender($session_user_id) {
 		$array_sender = Account::where('user_id', '=', $session_user_id)->get();
